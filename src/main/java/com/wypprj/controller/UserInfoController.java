@@ -5,8 +5,15 @@ import com.wypprj.exception.UserException;
 import com.wypprj.result.Result;
 import com.wypprj.result.ResultEnum;
 import com.wypprj.service.UserInfoService;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.constraints.*;
 
 /**
  * @Author: Administrator
@@ -17,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
+@Validated
 public class UserInfoController {
     @Autowired
     private UserInfoService userInfoService;
@@ -37,7 +45,7 @@ public class UserInfoController {
      * @return 返回指定id的用户信息，如果用户不存在，返回错误提示
      */
     @GetMapping("/query/{id}")
-    public Result queryUserById(@PathVariable Long id) {
+    public Result queryUserById(@PathVariable("id") @Min(value = 0,message = "id必须大于0") Long id) {
         System.out.println("queryUserById...");
         UserInfo userInfo = userInfoService.selectById(id);
         if (null == userInfo) {
@@ -58,11 +66,11 @@ public class UserInfoController {
      */
 //    @PutMapping("/put/{id}/{name}/{age}/{email}")
     @GetMapping("/put/{id}/{name}/{age}/{email}/{state}")
-    public Result updateUser(@PathVariable Long id,
-                             @PathVariable String name,
-                             @PathVariable Integer age,
-                             @PathVariable String email,
-                             @PathVariable Integer state) {
+    public Result updateUser(@PathVariable @Min(value = 0,message = "id必须大于0") Long id,
+                             @PathVariable @NotBlank(message = "name不能为空") String name,
+                             @PathVariable @Min(value = 0,message = "age必须大于0") Integer age,
+                             @PathVariable @Email(message = "邮箱格式不对") String email,
+                             @PathVariable @Range(min = 0, max = 1, message = "state只能是0或1") Integer state) {
         System.out.println("updateUser...");
         try {
             return Result.success(userInfoService.updateUser(id, name, age, email, state));
@@ -80,9 +88,9 @@ public class UserInfoController {
      */
 //    @PostMapping("/add/{name}/{age}/{email}")
     @GetMapping("/add/{name}/{age}/{email}")
-    public Result addUser(@PathVariable String name,
-                          @PathVariable Integer age,
-                          @PathVariable String email) {
+    public Result addUser(@PathVariable @NotBlank(message = "name不能为空") String name,
+                          @PathVariable @Min(value = 0,message = "age必须大于0") Integer age,
+                          @PathVariable @Email(message = "邮箱格式不对") String email) {
         System.out.println("addUser...");
         UserInfo userInfo = new UserInfo();
         userInfo.setName(name);
@@ -98,8 +106,8 @@ public class UserInfoController {
      */
 //    @DeleteMapping("/del/{id}")
     @GetMapping("/del/{id}")
-    public Result delUser(@PathVariable Long id) {
-        System.out.println("delUser...");
+    public Result delUser(@PathVariable @Min(value = 0,message = "id必须大于0") Long id) {
+
         try {
             return Result.success(userInfoService.delUser(id));
         } catch (UserException e) {
